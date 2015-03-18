@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="eventBrite" ng-csp>
   <head>
     <meta charset="utf-8">
     <!-- build:css styles/vendor.css -->
@@ -8,10 +8,12 @@
     <!-- endbuild -->
     <!-- build:css styles/main.css -->
     <link href="styles/main.css" rel="stylesheet">
+    <script src="scripts/angular.min.js"></script>
+    <script src="scripts/angular-route.js"></script>
     <!-- endbuild -->
   </head>
-  <body>
-    <h1>'Allo, 'Allo!</h1>
+  <body ng-controller="mainController">
+    <h1>{{message}}</h1>
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->

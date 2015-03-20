@@ -14,7 +14,21 @@
     <!-- endbuild -->
   </head>
   <body ng-controller="mainController">
-    <h1>{{message}}</h1>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-3">
+                    <p>Back</p>
+                </div>
+                <div class="col-xs-6">
+                    <p class="text-center"><b>EventBrite Search</b></p>
+                </div>
+                <div class="col-xs-3">
+                    <p class="text-right">Setting</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="main">
   
@@ -23,10 +37,6 @@
         <div ng-view></div>
     
     </div>
-
-    <a href="#/">home</a>
-    <a href="#/search">search</a>
-
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <!-- endbower -->

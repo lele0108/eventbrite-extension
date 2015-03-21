@@ -6,7 +6,6 @@ body {
 .header {
 	padding: 20px 0px 10px 0px;
 	background-color:#e67e22;
-	margin-bottom:20px;
 	color:white;
 }
 
@@ -23,6 +22,10 @@ body {
 .searchBar h3 {
 	font-size:14px;
 	font-weight:300;
+}
+
+.results {
+	margin-top:20px;
 }
 
 .event {
@@ -43,3 +46,16 @@ body {
 .event a:hover {
 	opacity:0.8;
 }
+
+.details {
+	padding: 20px 0px 10px 0px;
+	background-color:#ecf0f1;
+	margin-bottom:30px;
+}
+
+.details h1 {
+	font-weight:300;
+	margin-top:10px;
+	font-size:24px;
+}
+

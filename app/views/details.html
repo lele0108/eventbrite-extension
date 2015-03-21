@@ -2,8 +2,8 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-xs-12"><br>
-				<h5>Yerba Buena Gardens</h5>
-				<h1>2015 Intern Picnic In The Park</h1>
+				<h5>{{event.venue.name}} </h5>
+				<h1>{{event.name.text}}</h1>
 			</div>
 		</div>
 	</div>
@@ -13,8 +13,8 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-xs-12">
-				<p>Date: Feburary 6th, 2015</p>
-				<p>Description: Last summer, The Intern Project connected a thousand interns. We hosted the first annual Intern Project Summer Kickoff Picnic, and organized dinners that introduced small groups of interns to influential leaders in tech from around the Bay Area.</p>
+				<p>Date: {{event.start.utc | date:'medium'}}</p>
+				<p>{{event.description.text}}</p>
 			</div>
 		</div>
 	</div>

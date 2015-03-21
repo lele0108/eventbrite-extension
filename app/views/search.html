@@ -1,18 +1,25 @@
 <div class="results">
 	<div class="container">
+	
+		<div ng-repeat="event in events track by $index" class="events">
 
-		<a href="#/details"><div class="event">
-			<div class="row">
-				<div class="col-xs-3">
-					<img src="http://placehold.it/250x250" width="100%">
-				</div>
-				<div class="col-xs-9">
-					<h1>Example Event Here</h1>
-					<p>Creator of Event Here</p>
-					<p>Twitter HQ, San Francisco</p>
-				</div>
-			</div>
-		</div></a>
+
+			<a ng-click="alert($index);" href="#/details">
+				<div class="event">
+					<div class="row">
+						<div class="col-xs-3">
+							<img ng-src="{{event.logo_url}}" width="100%">
+						</div>
+						<div class="col-xs-9">
+							<h1>{{event.name.text}}</h1>
+							<p>{{event.organizer.name}}</p>
+							<p>{{event.venue.name}}</p>
+						</div>
+					</div>
+				</div><br>
+			</a>
+
+		</div>
 
 	</div>
 </div>

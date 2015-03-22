@@ -68,7 +68,7 @@ eventBriteApp.service('witAPI', function($http, $q) {
             deferred.resolve(data);
           }).
           error(function(data, status, headers, config) {
-            deferred.resolve("There was an error in calling Wit.ai");
+            deferred.reject("There was an error in calling Wit.ai");
         });
         return deferred.promise;
     }
@@ -115,7 +115,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         $scope.query = dataService.getProperty();
         $scope.events = {}; //variable for storing events
         $scope.NLPQuery = {};
-        $scope.notify = null;
+        $scope.notify = 'Loading...';
 
         witAPI.setQuery($scope.query);
         witAPI.callWit()
@@ -126,6 +126,11 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
                 eventBriteAPI.callEB() //call the API to retrieve data
                     .then(function(result){ //wait for API to finish and return promise
                         $scope.events = result;
+                        if ($scope.events.length < 1) {
+                            $scope.notify = 'No events found at this time';
+                        } else {
+                            $scope.notify = null;
+                        }
                         console.log(result);
                     }, function(error){
                         console.log(error);
@@ -140,6 +145,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         };
 
         $scope.submit = function() {
+            $scope.notify = 'Loading...';
             eventBriteAPI.setHeaders($scope.NLPQuery);
             eventBriteAPI.callEB() //call the API to retrieve data
                     .then(function(result){ //wait for API to finish and return promise

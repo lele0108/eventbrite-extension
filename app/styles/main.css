@@ -22,6 +22,8 @@ body {
 .searchBar h3 {
 	font-size:14px;
 	font-weight:300;
+	margin-bottom:0px;
+	margin-top:10px;
 }
 
 .results {

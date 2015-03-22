@@ -1,9 +1,8 @@
 <div class="results">
 	<div class="container">
 	
+		<!--this is repeated the number of events in the $scope.events object!-->	
 		<div ng-repeat="event in events track by $index" class="events">
-
-
 			<a ng-click="alert($index);" href="#/details">
 				<div class="event">
 					<div class="row">
@@ -18,8 +17,7 @@
 					</div>
 				</div><br>
 			</a>
-
-		</div>
+		</div><!--end repeat-->
 
 	</div>
 </div>

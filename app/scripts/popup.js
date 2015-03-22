@@ -1,7 +1,5 @@
 'use strict';
 
-console.log('\'Allo \'Allo! Popup');
-
 var eventBriteApp = angular.module('eventBrite', ['ngRoute']);
 
 eventBriteApp.config(function($routeProvider) {
@@ -22,18 +20,19 @@ eventBriteApp.config(function($routeProvider) {
                 templateUrl : 'views/details.html',
                 controller  : 'detailsController'
             });
-    });
-
-eventBriteApp.controller('mainController', function($scope) {
-        // create a message to display in our view
-        $scope.message = 'This is me testing routing!';
 });
 
+//controller has control over whole app
+eventBriteApp.controller('mainController', function($scope) {
+       
+});
+
+//controller for home page of app (search page)
 eventBriteApp.controller('homeController', function($scope, $location) {
-        // create a message to display in our view
-        $scope.message = 'Search Bar would go here';
-        $scope.submit = function() {
-        	console.log("hello");
+        //when user submits something in text box
+        $scope.submit = function(query) {
+        	$scope.query = angular.copy(query);
+            console.log($scope.query);
         	$location.path('/search');
         };
 });
@@ -50,14 +49,37 @@ eventBriteApp.service('dataService', function () {
                 property = value;
             }
         };
-    });
+});
 
-eventBriteApp.controller('searchController', function($scope, $routeParams, $http, dataService) {
-        // create a message to display in our view
-        $scope.message = 'Search results are now being displayed';
+eventBriteApp.service('witAPI', function($http, $q) {
+
+});
+
+eventBriteApp.service('eventBriteAPI', function($http, $q) {
+    var _headers = {};
+
+    this.callEB = function() {
+        var deferred = $q.defer();
+        $http.get('https://www.eventbriteapi.com/v3/events/search/', {params: _headers}). //API request sent to EventBrite
+          success(function(data, status, headers, config) {
+            deferred.resolve(data.events);
+          }).
+          error(function(data, status, headers, config) {
+            deferred.resolve("There was an error");
+        });
+        return deferred.promise;
+    }
+
+    this.setHeaders = function(headers) {
+        _headers = headers;
+    }
+});
+
+//Controller for calling EventBrite API and displaying it on results page
+eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI) {
         $scope.events = {}; //variable for storing events
         //GET request for EventBrite
-        var config = {
+        var config = { //Header for API request sent to EventBrite
             q:'hackathon', 
             "location.address":'San Francisco', 
             "location.within":"15mi", 
@@ -65,24 +87,22 @@ eventBriteApp.controller('searchController', function($scope, $routeParams, $htt
             "start_date.range_end":'2015-03-31T21:18:07Z', 
             token:'IOTP7KEXPCDAJTKKPTJB',
         };
-        $http.get('https://www.eventbriteapi.com/v3/events/search/', {params: config}).
-          success(function(data, status, headers, config) {
-            $scope.events = data.events;
-            console.log($scope.events);
-          }).
-          error(function(data, status, headers, config) {
-            console.log(data);
-            // called asynchronously if an error occurs
-            // or server returns response with an error status.
-        });
-        $scope.alert = function(index){
+
+        eventBriteAPI.setHeaders(config);
+        eventBriteAPI.callEB()
+            .then(function(result){
+                $scope.events = result
+          }, function(error){
+            console.log(error);
+          });
+
+        $scope.alert = function(index){ //when event is clicked in view, save the event Data in dataService
             dataService.setProperty($scope.events[index]);
         };
 });
 
+//Controller for displaying information on the event details view
 eventBriteApp.controller('detailsController', function($scope, $routeParams, dataService) {
-        // create a message to display in our view
-        $scope.message = 'More details about the event displayed here';
         //Getting the event details from the Angular service saved from searchController
         $scope.event = dataService.getProperty();
         console.log($scope.event);

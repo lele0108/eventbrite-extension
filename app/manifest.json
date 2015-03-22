@@ -14,7 +14,7 @@
       "scripts/background.js"
     ]
   },
-  "content_security_policy": "script-src 'self' https://www.eventbriteapi.com; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://www.eventbriteapi.com https://api.wit.ai/message; object-src 'self'",
   "browser_action": {
     "default_icon": {
       "19": "images/icon-19.png",

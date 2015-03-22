@@ -28,16 +28,16 @@ eventBriteApp.controller('mainController', function($scope) {
 });
 
 //controller for home page of app (search page)
-eventBriteApp.controller('homeController', function($scope, $location) {
+eventBriteApp.controller('homeController', function($scope, $location, dataService) {
         //when user submits something in text box
         $scope.submit = function(query) {
         	$scope.query = angular.copy(query);
-            console.log($scope.query);
+            dataService.setProperty($scope.query);
         	$location.path('/search');
         };
 });
 
-//Angular service to save Event information between controllers for better resource and performance
+//Angular service to save information between controllers for better resource and performance
 eventBriteApp.service('dataService', function () {
         var property = 'First';
 
@@ -52,9 +52,29 @@ eventBriteApp.service('dataService', function () {
 });
 
 eventBriteApp.service('witAPI', function($http, $q) {
+    var _headers = {
+        access_token: 'XQNVSHYZYPJS6MNA5T7R7UZOLCLUXUMU',
+        callback: 'JSON_CALLBACK'
+    };
 
+    this.setQuery = function(query) {
+        _headers.q = query;
+    }
+
+    this.callWit = function() {
+        var deferred = $q.defer();
+        $http.jsonp('https://api.wit.ai/message', {params: _headers}). //API request sent to EventBrite
+          success(function(data, status, headers, config) {
+            deferred.resolve(data);
+          }).
+          error(function(data, status, headers, config) {
+            deferred.resolve("There was an error in calling Wit.ai");
+        });
+        return deferred.promise;
+    }
 });
 
+//service used for calling the EventBriteAPI, returns a promise when finished
 eventBriteApp.service('eventBriteAPI', function($http, $q) {
     var _headers = {};
 
@@ -65,7 +85,7 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
             deferred.resolve(data.events);
           }).
           error(function(data, status, headers, config) {
-            deferred.resolve("There was an error");
+            deferred.resolve("There was an error calling EventBrite");
         });
         return deferred.promise;
     }
@@ -76,9 +96,18 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
 });
 
 //Controller for calling EventBrite API and displaying it on results page
-eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI) {
+eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI) {
+        $scope.query = dataService.getProperty();
         $scope.events = {}; //variable for storing events
         //GET request for EventBrite
+
+        witAPI.setQuery($scope.query);
+        witAPI.callWit()
+            .then(function(result){ //wait for API to finish and return promise
+                console.log(result);
+          }, function(error){
+            console.log(error);
+        });
         var config = { //Header for API request sent to EventBrite
             q:'hackathon', 
             "location.address":'San Francisco', 
@@ -88,13 +117,13 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
             token:'IOTP7KEXPCDAJTKKPTJB',
         };
 
-        eventBriteAPI.setHeaders(config);
-        eventBriteAPI.callEB()
-            .then(function(result){
-                $scope.events = result
+        eventBriteAPI.setHeaders(config); //set the Headers used in EventBrite API
+        eventBriteAPI.callEB() //call the API to retrieve data
+            .then(function(result){ //wait for API to finish and return promise
+                $scope.events = result 
           }, function(error){
             console.log(error);
-          });
+        });
 
         $scope.alert = function(index){ //when event is clicked in view, save the event Data in dataService
             dataService.setProperty($scope.events[index]);

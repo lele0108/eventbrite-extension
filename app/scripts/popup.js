@@ -76,7 +76,10 @@ eventBriteApp.service('witAPI', function($http, $q) {
 
 //service used for calling the EventBriteAPI, returns a promise when finished
 eventBriteApp.service('eventBriteAPI', function($http, $q) {
-    var _headers = {};
+    var _headers = {
+        token:'IOTP7KEXPCDAJTKKPTJB',
+        "location.within":"15mi"
+    };
 
     this.callEB = function() {
         var deferred = $q.defer();
@@ -91,36 +94,37 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
     }
 
     this.setHeaders = function(headers) {
-        _headers = headers;
+        _headers.q = headers.search_query;
+        _headers["location.address"] = headers.location;
+        if (headers.datetime.type == 'interval') {
+            _headers["start_date.range_start"] = headers.datetime.from;
+            _headers["start_date.range_end"] = headers.datetime.to;
+        }
     }
 });
 
 //Controller for calling EventBrite API and displaying it on results page
 eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI) {
+        /*var config = { //Header for API request sent to EventBrite
+            q:'hackathon', 
+            "location.address":'San Francisco',
+            "start_date.range_start":'2015-03-20T21:18:02Z', 
+            "start_date.range_end":'2015-03-31T21:18:07Z', 
+        };*/
         $scope.query = dataService.getProperty();
         $scope.events = {}; //variable for storing events
-        //GET request for EventBrite
 
         witAPI.setQuery($scope.query);
         witAPI.callWit()
             .then(function(result){ //wait for API to finish and return promise
                 console.log(result);
-          }, function(error){
-            console.log(error);
-        });
-        var config = { //Header for API request sent to EventBrite
-            q:'hackathon', 
-            "location.address":'San Francisco', 
-            "location.within":"15mi", 
-            "start_date.range_start":'2015-03-20T21:18:02Z', 
-            "start_date.range_end":'2015-03-31T21:18:07Z', 
-            token:'IOTP7KEXPCDAJTKKPTJB',
-        };
-
-        eventBriteAPI.setHeaders(config); //set the Headers used in EventBrite API
-        eventBriteAPI.callEB() //call the API to retrieve data
-            .then(function(result){ //wait for API to finish and return promise
-                $scope.events = result 
+                eventBriteAPI.setHeaders(result.outcomes[0].entities);
+                eventBriteAPI.callEB() //call the API to retrieve data
+                    .then(function(result){ //wait for API to finish and return promise
+                        $scope.events = result 
+                  }, function(error){
+                    console.log(error);
+                });
           }, function(error){
             console.log(error);
         });

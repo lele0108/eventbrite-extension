@@ -1,5 +1,24 @@
 <div class="results">
 	<div class="container">
+
+		<div class="options">
+				<div class="row">
+					<div class="col-xs-4">
+						<p class="text-center">Title</p>
+						<input type="text" ng-model="NLPQuery.search_query[0].value" class="form-control" placeholder="Text input">
+					</div>
+					<div class="col-xs-4">
+						<p class="text-center">Location</p>
+						<input type="text" ng-model="NLPQuery.location[0].value" class="form-control" placeholder="Text input">
+					</div>
+					<div class="col-xs-4">
+						<p class="text-center">Date Determined</p>
+						<button ng-click="submit();" type="submit" class="btn btn-default">Submit</button>
+					</div>
+				</div><br>
+		</div><br><br>
+
+		<p class="text-center" ng-show="notify">{{notify}}</p>
 	
 		<!--this is repeated the number of events in the $scope.events object!-->	
 		<div ng-repeat="event in events track by $index" class="events">

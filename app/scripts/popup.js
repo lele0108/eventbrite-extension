@@ -88,7 +88,7 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
             deferred.resolve(data.events);
           }).
           error(function(data, status, headers, config) {
-            deferred.resolve("There was an error calling EventBrite");
+            deferred.reject("There was an error calling EventBrite");
         });
         return deferred.promise;
     }
@@ -115,6 +115,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         $scope.query = dataService.getProperty();
         $scope.events = {}; //variable for storing events
         $scope.NLPQuery = {};
+        $scope.notify = null;
 
         witAPI.setQuery($scope.query);
         witAPI.callWit()
@@ -128,6 +129,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
                         console.log(result);
                     }, function(error){
                         console.log(error);
+                        $scope.notify = 'Please fill in missing fields';
                 });
           }, function(error){
             console.log(error);
@@ -136,6 +138,19 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         $scope.alert = function(index){ //when event is clicked in view, save the event Data in dataService
             dataService.setProperty($scope.events[index]);
         };
+
+        $scope.submit = function() {
+            eventBriteAPI.setHeaders($scope.NLPQuery);
+            eventBriteAPI.callEB() //call the API to retrieve data
+                    .then(function(result){ //wait for API to finish and return promise
+                        $scope.notify = null;
+                        $scope.events = result;
+                        console.log(result);
+                    }, function(error){
+                        console.log(error);
+                        $scope.notify = 'Error';
+            });
+        }
 });
 
 //Controller for displaying information on the event details view

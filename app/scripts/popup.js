@@ -94,36 +94,40 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
     }
 
     this.setHeaders = function(headers) {
-        _headers.q = headers.search_query;
-        _headers["location.address"] = headers.location;
-        if (headers.datetime.type == 'interval') {
-            _headers["start_date.range_start"] = headers.datetime.from;
-            _headers["start_date.range_end"] = headers.datetime.to;
+        if (headers.search_query)
+            _headers.q = headers.search_query[0].value;
+        if (headers.location)
+            _headers["location.address"] = headers.location[0].value;
+        if (headers.datetime[0].type == 'interval') { //if date is in a interval format
+            _headers["start_date.range_start"] = headers.datetime[0].from.value.substring(0, 19) + 'Z';
+            _headers["start_date.range_end"] = headers.datetime[0].to.value.substring(0, 19) + 'Z';
+        } else if (headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'day') { //if date is in a single day format
+            _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
+            _headers["start_date.range_end"] = headers.datetime[0].value.substring(0, 11) + '23:59:59Z'
+        } else if (headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'month') {// if date is in a single month format
+            _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
         }
     }
 });
 
 //Controller for calling EventBrite API and displaying it on results page
 eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI) {
-        /*var config = { //Header for API request sent to EventBrite
-            q:'hackathon', 
-            "location.address":'San Francisco',
-            "start_date.range_start":'2015-03-20T21:18:02Z', 
-            "start_date.range_end":'2015-03-31T21:18:07Z', 
-        };*/
         $scope.query = dataService.getProperty();
         $scope.events = {}; //variable for storing events
+        $scope.NLPQuery = {};
 
         witAPI.setQuery($scope.query);
         witAPI.callWit()
             .then(function(result){ //wait for API to finish and return promise
                 console.log(result);
+                $scope.NLPQuery = result.outcomes[0].entities;
                 eventBriteAPI.setHeaders(result.outcomes[0].entities);
                 eventBriteAPI.callEB() //call the API to retrieve data
                     .then(function(result){ //wait for API to finish and return promise
-                        $scope.events = result 
-                  }, function(error){
-                    console.log(error);
+                        $scope.events = result;
+                        console.log(result);
+                    }, function(error){
+                        console.log(error);
                 });
           }, function(error){
             console.log(error);

@@ -11,18 +11,20 @@ eventBriteApp.config(function($routeProvider) {
                 controller  : 'homeController'
             })
 
+            //serach page route
             .when('/search', {
                 templateUrl : 'views/search.html',
                 controller  : 'searchController'
             })
 
+            //detail page route
             .when('/details', {
                 templateUrl : 'views/details.html',
                 controller  : 'detailsController'
             });
 });
 
-//controller has control over whole app
+//controller that is present on every page, powers the back button
 eventBriteApp.controller('mainController', function($scope, $location) {
        $scope.back = function() {
             if ($location.path() == '/search') {
@@ -34,9 +36,9 @@ eventBriteApp.controller('mainController', function($scope, $location) {
 });
 
 //controller for home page of app (search page)
+    //$scope.submit is called when the enter key is pressed
 eventBriteApp.controller('homeController', function($scope, $location, dataService, localStore) {
-        //when user submits something in text box
-        localStore.delete('cache');
+        localStore.delete('cache'); //clear the local cache if exists
         $scope.submit = function(query) {
         	$scope.query = angular.copy(query);
             dataService.setProperty($scope.query);
@@ -45,6 +47,8 @@ eventBriteApp.controller('homeController', function($scope, $location, dataServi
 });
 
 //Angular service to save information between controllers for better resource and performance
+    //getProperty returns the stored property, variable
+    //setProperty allows you to pass it a variable to store
 eventBriteApp.service('dataService', function () {
         var property = 'First';
 
@@ -58,6 +62,9 @@ eventBriteApp.service('dataService', function () {
         };
 });
 
+//Angular service used to call witAPI. 
+    //setQuery allows you to set the witAPI query you want it to parse
+    //callWit calls the witAPI and returns a promise once finished
 eventBriteApp.service('witAPI', function($http, $q) {
     var _headers = {
         access_token: 'XQNVSHYZYPJS6MNA5T7R7UZOLCLUXUMU',
@@ -81,6 +88,10 @@ eventBriteApp.service('witAPI', function($http, $q) {
     }
 });
 
+//Angular service used for localStore caching
+    //store lets you store items with a key and JSON key
+    //retrieve lets you get a item from a key, returns JSON or null
+    //delete purges the specific key you provide in localStorage
 eventBriteApp.service('localStore', function() {
 
     this.store = function(key, value) {
@@ -103,10 +114,12 @@ eventBriteApp.service('localStore', function() {
 
 });
 
-//service used for calling the EventBriteAPI, returns a promise when finished
+//Angular service used for calling the EventBriteAPI, returns a promise when finished
+    //callEB calls the EventBrite API and returns a promise once it is finished
+    //setHeaders lets you pass it Wit.ai results and it will set the correct EventBrite headres including converting time format
 eventBriteApp.service('eventBriteAPI', function($http, $q) {
     var _headers = {
-        token:'IOTP7KEXPCDAJTKKPTJB',
+        token:'IOTP7KEXPCDAJTKKPTJB', //default parameters
         "location.within":"15mi"
     };
 
@@ -127,7 +140,7 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
             _headers.q = headers.search_query[0].value;
         if (headers.location)
             _headers["location.address"] = headers.location[0].value;
-        if (headers.datetime && headers.datetime[0].type == 'interval') { //if date is in a interval format
+        if (headers.datetime && headers.datetime[0].type == 'interval') { //if date is in an interval
             _headers["start_date.range_start"] = headers.datetime[0].from.value.substring(0, 19) + 'Z';
             _headers["start_date.range_end"] = headers.datetime[0].to.value.substring(0, 19) + 'Z';
         } else if (headers.datetime && headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'day') { //if date is in a single day format
@@ -140,24 +153,26 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
 });
 
 //Controller for calling EventBrite API and displaying it on results page
+    //$scope.alert is used to transferring informatoin from searchController to detailController, triggered on event click
+    //$scope.submit is used for custom parameters by the user, triggered when submit is pressed
 eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI, localStore) {
         $scope.events = {}; //variable for storing events
-        $scope.NLPQuery = {};
-        $scope.notify = 'Loading...';
+        $scope.NLPQuery = {}; //for storing Wit.ai results
+        $scope.notify = 'Loading...'; //Status message for user to see
 
-        if (localStore.retrieve('cache')) {
+        if (localStore.retrieve('cache')) { //if cache exists load events from cache directly
             $scope.events = localStore.retrieve('cache');
             console.log($scope.events);
             $scope.notify = null;
-        } else {
-            $scope.query = dataService.getProperty();
+        } else { //if cache is null call APIs
+            $scope.query = dataService.getProperty(); //get query entered by user on homeController
             witAPI.setQuery($scope.query);
             witAPI.callWit()
-                .then(function(result){ //wait for API to finish and return promise
+                .then(function(result){ //wait for Wit.ai to return result
                     $scope.NLPQuery = result.outcomes[0].entities;
                     eventBriteAPI.setHeaders(result.outcomes[0].entities);
-                    eventBriteAPI.callEB() //call the API to retrieve data
-                        .then(function(result){ //wait for API to finish and return promise
+                    eventBriteAPI.callEB() //Call eventBrite with Wit.ai parameters
+                        .then(function(result){ //wait for EventBrite to return result
                             $scope.events = result;
                             if ($scope.events.length < 1) {
                                 $scope.notify = 'No events found at this time';
@@ -176,11 +191,11 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         }
 
         $scope.alert = function(index){ //when event is clicked in view, save the event Data in dataService
-            dataService.setProperty($scope.events[index]);
+            dataService.setProperty($scope.events[index]); //save single event detail so can be retrieved in detailsController
         };
 
         $scope.submit = function() {
-            localStore.delete('key');
+            localStore.delete('key'); //clear the local cache
             $scope.notify = 'Loading...';
             eventBriteAPI.setHeaders($scope.NLPQuery);
             eventBriteAPI.callEB() //call the API to retrieve data
@@ -194,8 +209,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
                         }
                         console.log(result);
                     }, function(error){
-                        s(error);
-                        $scope.notify = 'Error';
+                        $scope.notify = 'Please fill in missing fields (possible error)';
             });
         }
 });

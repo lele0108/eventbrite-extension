@@ -147,7 +147,10 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
             _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
             _headers["start_date.range_end"] = headers.datetime[0].value.substring(0, 11) + '23:59:59Z'
         } else if (headers.datetime && headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'month') {// if date is in a single month format
+            var endDate = new Date(headers.datetime[0].value);
+            endDate.setMonth(endDate.getMonth() + 1);
             _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
+            _headers["start_date.range_end"] = endDate.toISOString().substring(0,19) + 'Z';
         }
     }
 });

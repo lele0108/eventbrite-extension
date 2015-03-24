@@ -26,12 +26,13 @@
 				<div class="event">
 					<div class="row">
 						<div class="col-xs-3">
-							<img ng-src="{{event.logo_url}}" width="100%">
+							<img ng-src="{{event.logo_url}}" height="100%" width="100%">
 						</div>
 						<div class="col-xs-9">
-							<h1>{{event.name.text}}</h1>
-							<p>{{event.organizer.name}}</p>
-							<p>{{event.venue.name}}</p>
+							<h1 class="ellipsis">{{event.name.text}}</h1>
+							<p>Organized by {{event.organizer.name}}</p>
+							<p>Date: {{event.start.utc | date:'medium'}}</p>
+							<p>Location: {{event.venue.name}}</p>
 						</div>
 					</div>
 				</div><br>

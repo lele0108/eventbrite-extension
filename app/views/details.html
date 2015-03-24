@@ -3,7 +3,7 @@
 		<div class="row">
 			<div class="col-xs-12"><br>
 				<h5>{{event.venue.name}} </h5>
-				<h1>{{event.name.text}}</h1>
+				<h1 class"ellipsis">{{event.name.text}}</h1>
 			</div>
 		</div>
 	</div>
@@ -13,8 +13,9 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-xs-12">
-				<p>Date: {{event.start.utc | date:'medium'}}</p>
-				<p>{{event.description.text}}</p>
+				<p><a target="_blank" href="{{event.url}}">Get tickets</a></p>
+				<p><b>Date:</b> {{event.start.utc | date:'medium'}}</p>
+				<p><b>Description:</b> {{event.description.text}}</p>
 			</div>
 		</div>
 	</div>

@@ -98,13 +98,13 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
             _headers.q = headers.search_query[0].value;
         if (headers.location)
             _headers["location.address"] = headers.location[0].value;
-        if (headers.datetime[0].type == 'interval') { //if date is in a interval format
+        if (headers.datetime && headers.datetime[0].type == 'interval') { //if date is in a interval format
             _headers["start_date.range_start"] = headers.datetime[0].from.value.substring(0, 19) + 'Z';
             _headers["start_date.range_end"] = headers.datetime[0].to.value.substring(0, 19) + 'Z';
-        } else if (headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'day') { //if date is in a single day format
+        } else if (headers.datetime && headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'day') { //if date is in a single day format
             _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
             _headers["start_date.range_end"] = headers.datetime[0].value.substring(0, 11) + '23:59:59Z'
-        } else if (headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'month') {// if date is in a single month format
+        } else if (headers.datetime && headers.datetime[0].type == 'value' && headers.datetime[0].grain == 'month') {// if date is in a single month format
             _headers["start_date.range_start"] = headers.datetime[0].value.substring(0, 19) + 'Z';
         }
     }
@@ -120,7 +120,6 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
         witAPI.setQuery($scope.query);
         witAPI.callWit()
             .then(function(result){ //wait for API to finish and return promise
-                console.log(result);
                 $scope.NLPQuery = result.outcomes[0].entities;
                 eventBriteAPI.setHeaders(result.outcomes[0].entities);
                 eventBriteAPI.callEB() //call the API to retrieve data
@@ -149,11 +148,15 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
             eventBriteAPI.setHeaders($scope.NLPQuery);
             eventBriteAPI.callEB() //call the API to retrieve data
                     .then(function(result){ //wait for API to finish and return promise
-                        $scope.notify = null;
                         $scope.events = result;
+                        if ($scope.events.length < 1) {
+                            $scope.notify = 'No events found at this time';
+                        } else {
+                            $scope.notify = null;
+                        }
                         console.log(result);
                     }, function(error){
-                        console.log(error);
+                        s(error);
                         $scope.notify = 'Error';
             });
         }
@@ -163,5 +166,4 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
 eventBriteApp.controller('detailsController', function($scope, $routeParams, dataService) {
         //Getting the event details from the Angular service saved from searchController
         $scope.event = dataService.getProperty();
-        console.log($scope.event);
 });

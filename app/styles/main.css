@@ -32,12 +32,31 @@ body {
 
 .event {
 	background-color:#ecf0f1;
+	padding: 5px 5px 10px 0px;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event p {
+	color:#7f8c8d;
+	margin-bottom:2px;
+	margin-top:0px;
+}
+
+.event h1.block {
+	width:200px;
 }
 
 .event h1 {
 	font-size:18px;
 	margin-top:10px;
-	margin-bottom:5px;
+	margin-bottom:15px;
+	color:black;
+	text-overflow: ellipsis;
 }
 
 .event a {
@@ -45,12 +64,12 @@ body {
 	color:black;
 }
 
-.event a:hover {
-	opacity:0.8;
+.event:hover {
+	opacity:0.7;
 }
 
 .details {
-	padding: 20px 0px 10px 0px;
+	padding: 30px 0px 10px 0px;
 	background-color:#ecf0f1;
 	margin-bottom:30px;
 }

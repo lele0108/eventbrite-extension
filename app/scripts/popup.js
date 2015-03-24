@@ -23,13 +23,20 @@ eventBriteApp.config(function($routeProvider) {
 });
 
 //controller has control over whole app
-eventBriteApp.controller('mainController', function($scope) {
-       
+eventBriteApp.controller('mainController', function($scope, $location) {
+       $scope.back = function() {
+            if ($location.path() == '/search') {
+                $location.path('/');
+            } else if ($location.path() == '/details') {
+                $location.path('/search')
+            }
+       }
 });
 
 //controller for home page of app (search page)
-eventBriteApp.controller('homeController', function($scope, $location, dataService) {
+eventBriteApp.controller('homeController', function($scope, $location, dataService, localStore) {
         //when user submits something in text box
+        localStore.delete('cache');
         $scope.submit = function(query) {
         	$scope.query = angular.copy(query);
             dataService.setProperty($scope.query);
@@ -74,6 +81,28 @@ eventBriteApp.service('witAPI', function($http, $q) {
     }
 });
 
+eventBriteApp.service('localStore', function() {
+
+    this.store = function(key, value) {
+        var storeThis = JSON.stringify(value);
+        localStorage.setItem(key, storeThis);
+    }
+
+    this.retrieve = function(key) {
+        var storedString = localStorage.getItem(key);
+        if (storedString) {
+            return JSON.parse(storedString);
+        } else {
+            return null;
+        }
+    }
+
+    this.delete = function(key) {
+        localStorage.removeItem(key);
+    }
+
+});
+
 //service used for calling the EventBriteAPI, returns a promise when finished
 eventBriteApp.service('eventBriteAPI', function($http, $q) {
     var _headers = {
@@ -111,39 +140,47 @@ eventBriteApp.service('eventBriteAPI', function($http, $q) {
 });
 
 //Controller for calling EventBrite API and displaying it on results page
-eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI) {
-        $scope.query = dataService.getProperty();
+eventBriteApp.controller('searchController', function($scope, dataService, eventBriteAPI, witAPI, localStore) {
         $scope.events = {}; //variable for storing events
         $scope.NLPQuery = {};
         $scope.notify = 'Loading...';
 
-        witAPI.setQuery($scope.query);
-        witAPI.callWit()
-            .then(function(result){ //wait for API to finish and return promise
-                $scope.NLPQuery = result.outcomes[0].entities;
-                eventBriteAPI.setHeaders(result.outcomes[0].entities);
-                eventBriteAPI.callEB() //call the API to retrieve data
-                    .then(function(result){ //wait for API to finish and return promise
-                        $scope.events = result;
-                        if ($scope.events.length < 1) {
-                            $scope.notify = 'No events found at this time';
-                        } else {
-                            $scope.notify = null;
-                        }
-                        console.log(result);
-                    }, function(error){
-                        console.log(error);
-                        $scope.notify = 'Please fill in missing fields';
-                });
-          }, function(error){
-            console.log(error);
-        });
+        if (localStore.retrieve('cache')) {
+            $scope.events = localStore.retrieve('cache');
+            console.log($scope.events);
+            $scope.notify = null;
+        } else {
+            $scope.query = dataService.getProperty();
+            witAPI.setQuery($scope.query);
+            witAPI.callWit()
+                .then(function(result){ //wait for API to finish and return promise
+                    $scope.NLPQuery = result.outcomes[0].entities;
+                    eventBriteAPI.setHeaders(result.outcomes[0].entities);
+                    eventBriteAPI.callEB() //call the API to retrieve data
+                        .then(function(result){ //wait for API to finish and return promise
+                            $scope.events = result;
+                            if ($scope.events.length < 1) {
+                                $scope.notify = 'No events found at this time';
+                            } else {
+                                localStore.store('cache', result); //cache the results if user wants to back to this page
+                                $scope.notify = null;
+                            }
+                            console.log(result);
+                        }, function(error){
+                            console.log(error);
+                            $scope.notify = 'Please fill in missing fields';
+                    });
+              }, function(error){
+                console.log(error);
+            });
+        }
 
         $scope.alert = function(index){ //when event is clicked in view, save the event Data in dataService
             dataService.setProperty($scope.events[index]);
         };
 
         $scope.submit = function() {
+            localStore.delete('key');
             $scope.notify = 'Loading...';
             eventBriteAPI.setHeaders($scope.NLPQuery);
             eventBriteAPI.callEB() //call the API to retrieve data
@@ -152,6 +189,7 @@ eventBriteApp.controller('searchController', function($scope, dataService, event
                         if ($scope.events.length < 1) {
                             $scope.notify = 'No events found at this time';
                         } else {
+                            localStore.store('cache', result);
                             $scope.notify = null;
                         }
                         console.log(result);
